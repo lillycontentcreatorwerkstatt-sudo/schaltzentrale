@@ -14,7 +14,11 @@ function run(input, parameters) {
 
   const text = (Array.isArray(input) ? input.map(String).join("\n") : String(input || "")).trim();
   const [art, a = "", b = "", c = ""] = text.split("\t");
-  const datum = (s) => new Date(s.replace(" ", "T"));
+  // Datum aus Zahlen bauen: Innerhalb von Kurzbefehle liest new Date("2026-11-27 09:00") keinen Text.
+  const datum = (s) => {
+    const m = String(s).match(/(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+    return m ? new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0)) : null;
+  };
 
   if (art === "erledigt") {
     const Rem = Application("Reminders");
@@ -26,7 +30,8 @@ function run(input, parameters) {
   if (art === "erinnerung") {
     const Rem = Application("Reminders");
     const props = { name: a };
-    if (b) props.dueDate = datum(b + " 09:00");
+    const faellig = b ? datum(b + " 09:00") : null;
+    if (faellig) props.dueDate = faellig;
     Rem.defaultList().reminders.push(Rem.Reminder(props));
     return "aktualisieren";
   }
