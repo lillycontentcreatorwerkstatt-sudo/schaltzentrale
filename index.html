@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Schaltzentrale">
+<meta name="theme-color" content="#F3EFE7">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Schaltzentrale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F3EFE7; --card: #FBF9F5; --ink: #1C2B33; --muted: #6C7276; --line: #E4DDD0; --soft: #ECE6DA;
+    --accent: #1F6F6B; --accent-soft: #DCEBE8; --warn: #A4572A; --warn-soft: #F5E4D7;
+    --serif: "Fraunces", Georgia, serif; --sans: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
+    --shadow: 0 1px 0 rgba(28,43,51,.04), 0 8px 24px rgba(28,43,51,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #15191B; --card: #1E2427; --ink: #E9E6E0; --muted: #9AA0A3; --line: #2E3538; --soft: #262D30;
+      --accent: #6FC2BA; --accent-soft: #1F3533; --warn: #E3A27A; --warn-soft: #3A2A22;
+      --shadow: 0 1px 0 rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.25); }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--sans); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1240px; margin: 0 auto; padding: 26px 28px 60px; }
+  button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; padding: 0; }
+  input, select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .muted { color: var(--muted); }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  header { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+  header .date { color: var(--muted); font-size: 13px; }
+  header h1 { font-family: var(--serif); font-weight: 400; font-size: 36px; letter-spacing: -.02em; line-height: 1; margin: 6px 0 0; }
+  .tools { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .search { width: 240px; background: var(--card); box-shadow: var(--shadow); border: none; border-radius: 999px; padding: 8px 14px; }
+  .btn { background: var(--card); box-shadow: var(--shadow); border-radius: 999px; padding: 8px 14px; font-weight: 500; white-space: nowrap; }
+  .btn:hover { background: var(--soft); }
+  .btn.primary { background: var(--accent); color: var(--bg); }
+  .btn.primary:hover { opacity: .9; }
+  .stand { font-size: 12px; color: var(--muted); }
+  .stand.alt { color: var(--warn); }
+
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } .search { width: 100%; } }
+  .card { background: var(--card); border-radius: 20px; box-shadow: var(--shadow); padding: 18px 20px 14px; min-height: 220px; display: flex; flex-direction: column; }
+  .card h2 { font-family: var(--serif); font-weight: 400; font-size: 21px; margin: 0; display: flex; align-items: baseline; gap: 10px; }
+  .card h2 .count { font-family: var(--sans); font-size: 12px; color: var(--muted); }
+  .card h2 .act { margin-left: auto; font-family: var(--sans); font-size: 13px; color: var(--accent); font-weight: 500; }
+  .list { margin-top: 10px; flex: 1; }
+  .group { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 2px; }
+  .group.warn { color: var(--warn); }
+  .row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .group + .row { border-top: none; }
+  .row.click { cursor: pointer; border-radius: 8px; }
+  .row.click:hover { background: var(--soft); margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+  .row .time { width: 92px; flex: none; color: var(--muted); }
+  .row .main { flex: 1; min-width: 0; }
+  .row .title { overflow: hidden; text-overflow: ellipsis; }
+  .row .sub { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .side { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .row .side.warn { color: var(--warn); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; margin-top: 6px; }
+  .dot.off { background: transparent; border: 1px solid var(--line); }
+  .flag { color: var(--warn); }
+  .check { width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--muted); flex: none; margin-top: 1px; display: grid; place-items: center; }
+  .check:hover { border-color: var(--accent); }
+  .row.done .title { text-decoration: line-through; color: var(--muted); }
+  .row.done .check { background: var(--accent); border-color: var(--accent); }
+  .row.done .check::after { content: ""; width: 5px; height: 9px; border: solid var(--card); border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
+  .empty { color: var(--muted); padding: 14px 0; }
+
+  .quick { display: none; gap: 6px; flex-wrap: wrap; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .quick.open { display: flex; }
+  .quick input[type=text] { flex: 1 1 180px; }
+  .quick .err { width: 100%; color: var(--warn); font-size: 12px; }
+
+  .setup { background: var(--card); border-radius: 20px; box-shadow: var(--shadow); padding: 22px 24px; margin-bottom: 16px; }
+  .setup h2 { font-family: var(--serif); font-weight: 400; font-size: 22px; margin: 0 0 6px; }
+  .setup ol { margin: 10px 0 14px; padding-left: 20px; }
+  .setup li { margin: 6px 0; }
+  .setup .row2 { display: flex; gap: 8px; flex-wrap: wrap; }
+  a { color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 13px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <div class="date" id="datum"></div>
+      <h1>Schaltzentrale</h1>
+    </div>
+    <div class="tools">
+      <span class="stand" id="stand"></span>
+      <input class="search" id="suche" type="search" placeholder="Alles durchsuchen" aria-label="Alles durchsuchen">
+      <button class="btn primary" id="aktualisieren">Aktualisieren</button>
+      <button class="btn" id="einrichtenBtn">Einrichten</button>
+    </div>
+  </header>
+
+  <section class="setup" id="setup" hidden>
+    <h2>So richtest du die Schaltzentrale ein</h2>
+    <div class="muted">Die Seite liest deine Daten nicht selbst. Zwei Kurzbefehle holen sie auf deinem Mac und schicken sie hierher. Alles bleibt auf deinem Gerät.</div>
+    <ol>
+      <li>Lade die beiden Kurzbefehle und füge sie in der Kurzbefehle-App hinzu:
+        <a href="kurzbefehle/Schaltzentrale%20aktualisieren.shortcut">Schaltzentrale aktualisieren</a> und
+        <a href="kurzbefehle/Schaltzentrale%20Aktion.shortcut">Schaltzentrale Aktion</a>.</li>
+      <li>In der Kurzbefehle-App: <b>Einstellungen → Erweitert → „Skripte ausführen erlauben“</b> einschalten.</li>
+      <li>Hier auf <b>Aktualisieren</b> klicken. Beim ersten Mal fragt dein Mac, ob die Kurzbefehle Kalender, Erinnerungen, Notizen und Mail lesen dürfen.</li>
+      <li>Als App speichern: in Safari <b>Ablage → Zum Dock hinzufügen</b>.</li>
+      <li>Optional: In der Kurzbefehle-App eine Automation anlegen, die „Schaltzentrale aktualisieren“ morgens und mittags startet.</li>
+    </ol>
+    <div class="row2">
+      <button class="btn" id="demoBtn">Mit Beispieldaten ansehen</button>
+      <button class="btn" id="setupZu">Schließen</button>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="card" data-bereich="termine">
+      <h2>Termine <span class="count" id="nTermine"></span><button class="act" data-quick="qTermin">+ Termin</button></h2>
+      <div class="list" id="lTermine"></div>
+      <form class="quick" id="qTermin">
+        <input type="text" name="titel" placeholder="Zahnarzt" aria-label="Titel">
+        <input type="date" name="datum" aria-label="Datum">
+        <input type="time" name="zeit" value="10:00" aria-label="Uhrzeit">
+        <select name="dauer" aria-label="Dauer"><option value="30">30 Min</option><option value="60" selected>1 Std</option><option value="120">2 Std</option></select>
+        <button class="btn primary" type="submit">Anlegen</button>
+        <div class="err" hidden></div>
+      </form>
+    </section>
+
+    <section class="card" data-bereich="erinnerungen">
+      <h2>Erinnerungen <span class="count" id="nErinnerungen"></span><button class="act" data-quick="qErinnerung">+ Erinnerung</button></h2>
+      <div class="list" id="lErinnerungen"></div>
+      <form class="quick" id="qErinnerung">
+        <input type="text" name="titel" placeholder="Paket abholen" aria-label="Titel">
+        <input type="date" name="datum" aria-label="Fällig am (optional)">
+        <button class="btn primary" type="submit">Anlegen</button>
+        <div class="err" hidden></div>
+      </form>
+    </section>
+
+    <section class="card" data-bereich="notizen">
+      <h2>Notizen <span class="count" id="nNotizen"></span></h2>
+      <div class="list" id="lNotizen"></div>
+    </section>
+
+    <section class="card" data-bereich="mails">
+      <h2>Mail <span class="count" id="nMails"></span></h2>
+      <div class="list" id="lMails"></div>
+    </section>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const SPEICHER = "schaltzentrale.daten.v1";
+const KB_AKTUALISIEREN = "Schaltzentrale aktualisieren";
+const KB_AKTION = "Schaltzentrale Aktion";
+const $ = (id) => document.getElementById(id);
+
+let daten = null;
+let suchwort = "";
+const erledigt = new Set();
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function toast(text) {
+  const t = $("toast"); t.textContent = text; t.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+// ---------- Datum ----------
+const tagStart = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+const heute0 = () => tagStart(new Date());
+function parse(s) { if (!s) return null; const d = new Date(s); return isNaN(d) ? null : d; }
+const fmtZeit = (d) => d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+function fmtTag(d) {
+  const diff = Math.round((tagStart(d) - heute0()) / 864e5);
+  if (diff === 0) return "Heute";
+  if (diff === 1) return "Morgen";
+  if (diff === -1) return "Gestern";
+  return d.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
+}
+function fmtKurz(d) {
+  const diff = Math.round((tagStart(d) - heute0()) / 864e5);
+  if (diff === 0) return fmtZeit(d);
+  if (diff === -1) return "gestern";
+  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+}
+function fmtVorher(d) {
+  const min = Math.round((Date.now() - d) / 6e4);
+  if (min < 1) return "gerade eben";
+  if (min < 60) return `vor ${min} Min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `vor ${h} Std`;
+  return `am ${d.toLocaleDateString("de-DE")}`;
+}
+
+// ---------- Kurzbefehle ----------
+function kurzbefehl(name, text) {
+  let url = "shortcuts://run-shortcut?name=" + encodeURIComponent(name);
+  if (text != null) url += "&input=text&text=" + encodeURIComponent(text);
+  location.href = url;
+}
+function aktion(art, ...werte) { kurzbefehl(KB_AKTION, [art, ...werte].join("\t")); }
+
+// ---------- Daten laden ----------
+function ausHash() {
+  const m = location.hash.match(/^#daten=(.*)$/s);
+  if (!m) return false;
+  history.replaceState(null, "", location.pathname + location.search);
+  try {
+    const neu = JSON.parse(decodeURIComponent(m[1]));
+    neu.stand = neu.stand || new Date().toISOString();
+    localStorage.setItem(SPEICHER, JSON.stringify(neu));
+    daten = neu; erledigt.clear();
+    toast("Daten aktualisiert");
+    return true;
+  } catch (e) {
+    toast("Die Daten vom Kurzbefehl konnten nicht gelesen werden.");
+    return false;
+  }
+}
+function ausSpeicher() {
+  try { daten = JSON.parse(localStorage.getItem(SPEICHER)); } catch (e) { daten = null; }
+}
+
+// ---------- Anzeige ----------
+function passt(...felder) {
+  if (!suchwort) return true;
+  return felder.some((f) => f && String(f).toLowerCase().includes(suchwort));
+}
+function leer(liste, text) { liste.appendChild(el("div", "empty", text)); }
+
+function zeigeTermine() {
+  const liste = $("lTermine"); liste.replaceChildren();
+  const alle = (daten?.termine || []).map((t) => ({ ...t, s: parse(t.start), e: parse(t.ende) }))
+    .filter((t) => t.s && passt(t.titel, t.ort, t.kalender))
+    .sort((a, b) => a.s - b.s);
+  $("nTermine").textContent = alle.length ? alle.length : "";
+  if (!alle.length) return leer(liste, daten ? "Keine Termine in den nächsten Tagen." : "Noch keine Daten. Klick auf Aktualisieren.");
+  let tag = "";
+  for (const t of alle) {
+    const name = fmtTag(t.s);
+    if (name !== tag) { tag = name; liste.appendChild(el("div", "group", name)); }
+    const r = el("div", "row");
+    r.appendChild(el("div", "time tnum", t.ganztag ? "ganztägig" : fmtZeit(t.s) + (t.e ? "–" + fmtZeit(t.e) : "")));
+    const m = el("div", "main");
+    m.appendChild(el("div", "title", t.titel || "Ohne Titel"));
+    const sub = [t.ort, t.kalender].filter(Boolean).join(" · ");
+    if (sub) m.appendChild(el("div", "sub", sub));
+    r.appendChild(m);
+    liste.appendChild(r);
+  }
+}
+
+function zeigeErinnerungen() {
+  const liste = $("lErinnerungen"); liste.replaceChildren();
+  const h0 = heute0(), m0 = new Date(+h0 + 864e5);
+  const alle = (daten?.erinnerungen || []).map((e) => ({ ...e, f: parse(e.faellig) }))
+    .filter((e) => passt(e.titel, e.liste));
+  const offen = alle.filter((e) => !erledigt.has(e.titel)).length;
+  $("nErinnerungen").textContent = offen ? offen : "";
+  if (!alle.length) return leer(liste, daten ? "Nichts offen. Schön." : "Noch keine Daten. Klick auf Aktualisieren.");
+  const gruppen = [
+    ["Überfällig", "warn", (e) => e.f && e.f < h0],
+    ["Heute", "", (e) => e.f && e.f >= h0 && e.f < m0],
+    ["Demnächst", "", (e) => e.f && e.f >= m0],
+    ["Ohne Datum", "", (e) => !e.f],
+  ];
+  for (const [name, cls, test] of gruppen) {
+    const teil = alle.filter(test).sort((a, b) => (a.f || 0) - (b.f || 0));
+    if (!teil.length) continue;
+    liste.appendChild(el("div", "group " + cls, name));
+    for (const e of teil) {
+      const r = el("div", "row" + (erledigt.has(e.titel) ? " done" : ""));
+      const c = el("button", "check"); c.setAttribute("aria-label", "Erledigt: " + e.titel);
+      c.onclick = () => abhaken(e, r);
+      r.appendChild(c);
+      const m = el("div", "main");
+      m.appendChild(el("div", "title", e.titel));
+      if (e.liste) m.appendChild(el("div", "sub", e.liste));
+      r.appendChild(m);
+      if (e.f) r.appendChild(el("div", "side tnum" + (e.f < h0 ? " warn" : ""), fmtKurz(e.f)));
+      liste.appendChild(r);
+    }
+  }
+}
+function abhaken(e, r) {
+  if (erledigt.has(e.titel)) return;
+  erledigt.add(e.titel); r.classList.add("done");
+  zeigeErinnerungen();
+  aktion("erledigt", e.titel);
+}
+
+function zeigeNotizen() {
+  const liste = $("lNotizen"); liste.replaceChildren();
+  const alle = (daten?.notizen || []).filter((n) => passt(n.titel, n.auszug, n.ordner));
+  $("nNotizen").textContent = alle.length ? alle.length : "";
+  if (!alle.length) return leer(liste, daten ? "Keine Notizen gefunden." : "Noch keine Daten. Klick auf Aktualisieren.");
+  for (const n of alle) {
+    const r = el("div", "row click");
+    r.title = "In Notizen öffnen";
+    r.onclick = () => aktion("notiz", n.id || "", n.titel);
+    const m = el("div", "main");
+    m.appendChild(el("div", "title", n.titel || "Ohne Titel"));
+    const sub = [n.ordner, n.auszug].filter(Boolean).join(" · ");
+    if (sub) m.appendChild(el("div", "sub", sub));
+    r.appendChild(m);
+    const d = parse(n.geaendert);
+    if (d) r.appendChild(el("div", "side tnum", fmtKurz(d)));
+    liste.appendChild(r);
+  }
+}
+
+function zeigeMails() {
+  const liste = $("lMails"); liste.replaceChildren();
+  const alle = (daten?.mails || []).map((m) => ({ ...m, d: parse(m.datum) }))
+    .filter((m) => passt(m.betreff, m.von))
+    .sort((a, b) => (b.d || 0) - (a.d || 0));
+  const ungelesen = alle.filter((m) => m.ungelesen).length;
+  $("nMails").textContent = alle.length ? (ungelesen ? `${ungelesen} ungelesen` : alle.length) : "";
+  if (!alle.length) return leer(liste, daten ? "Keine ungelesenen oder markierten Mails." : "Noch keine Daten. Klick auf Aktualisieren.");
+  for (const m of alle) {
+    const r = el("div", "row click");
+    r.title = "In Mail öffnen";
+    r.onclick = () => { if (m.id) location.href = "message://%3c" + encodeURIComponent(m.id) + "%3e"; };
+    r.appendChild(m.markiert ? Object.assign(el("div", "flag", "⚑"), { title: "Markiert" }) : el("div", "dot" + (m.ungelesen ? "" : " off")));
+    const main = el("div", "main");
+    main.appendChild(el("div", "title", m.betreff || "Ohne Betreff"));
+    if (m.von) main.appendChild(el("div", "sub", m.von));
+    r.appendChild(main);
+    if (m.d) r.appendChild(el("div", "side tnum", fmtKurz(m.d)));
+    liste.appendChild(r);
+  }
+}
+
+function zeigeStand() {
+  const s = $("stand");
+  const d = parse(daten?.stand);
+  if (!d) { s.textContent = ""; return; }
+  s.textContent = "Stand " + fmtVorher(d);
+  s.classList.toggle("alt", Date.now() - d > 3 * 36e5);
+}
+
+function zeigeAlles() {
+  $("datum").textContent = new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  zeigeStand(); zeigeTermine(); zeigeErinnerungen(); zeigeNotizen(); zeigeMails();
+}
+
+// ---------- Schnell anlegen ----------
+document.querySelectorAll("[data-quick]").forEach((b) => b.onclick = () => {
+  const f = $(b.dataset.quick); f.classList.toggle("open");
+  if (f.classList.contains("open")) {
+    if (f.datum && !f.datum.value && f.id === "qTermin") f.datum.value = new Date().toLocaleDateString("sv-SE");
+    f.titel.focus();
+  }
+});
+function fehler(f, text) { const e = f.querySelector(".err"); e.textContent = text; e.hidden = !text; }
+document.querySelectorAll(".quick").forEach((f) => f.titel.addEventListener("input", () => fehler(f, "")));
+
+$("qErinnerung").onsubmit = (ev) => {
+  ev.preventDefault(); const f = ev.target;
+  const titel = f.titel.value.trim();
+  if (!titel) return fehler(f, "Gib einen Titel ein.");
+  aktion("erinnerung", titel, f.datum.value || "");
+  f.reset(); f.classList.remove("open");
+};
+$("qTermin").onsubmit = (ev) => {
+  ev.preventDefault(); const f = ev.target;
+  const titel = f.titel.value.trim();
+  if (!titel) return fehler(f, "Gib einen Titel ein.");
+  if (!f.datum.value || !f.zeit.value) return fehler(f, "Wähle Datum und Uhrzeit.");
+  const start = new Date(f.datum.value + "T" + f.zeit.value);
+  const ende = new Date(+start + Number(f.dauer.value) * 6e4);
+  const iso = (d) => d.toLocaleDateString("sv-SE") + " " + d.toTimeString().slice(0, 5);
+  aktion("termin", titel, iso(start), iso(ende));
+  f.reset(); f.zeit.value = "10:00"; f.dauer.value = "60"; f.classList.remove("open");
+};
+
+// ---------- Einrichten und Beispieldaten ----------
+$("aktualisieren").onclick = () => kurzbefehl(KB_AKTUALISIEREN);
+$("einrichtenBtn").onclick = () => { $("setup").hidden = !$("setup").hidden; };
+$("setupZu").onclick = () => { $("setup").hidden = true; };
+$("suche").oninput = (e) => { suchwort = e.target.value.trim().toLowerCase(); zeigeAlles(); };
+$("demoBtn").onclick = () => {
+  const h = heute0(), at = (tage, std, min = 0) => new Date(+h + tage * 864e5 + (std * 60 + min) * 6e4).toISOString();
+  daten = {
+    stand: new Date().toISOString(), beispiel: true,
+    termine: [
+      { titel: "Teambesprechung", start: at(0, 9), ende: at(0, 10), kalender: "Arbeit" },
+      { titel: "Zahnarzt", start: at(0, 13, 30), ende: at(0, 14, 15), ort: "Praxis am Markt", kalender: "Privat" },
+      { titel: "Sport", start: at(0, 18), ende: at(0, 19), kalender: "Privat" },
+      { titel: "Geburtstag Anna", start: at(1, 0), ende: at(2, 0), ganztag: true, kalender: "Geburtstage" },
+      { titel: "Videodreh Patreon", start: at(2, 10), ende: at(2, 12), kalender: "Arbeit" },
+    ],
+    erinnerungen: [
+      { titel: "Rechnung bezahlen", faellig: at(-2, 9), liste: "Erinnerungen" },
+      { titel: "Paket abholen", faellig: at(0, 17), liste: "Erinnerungen" },
+      { titel: "Mama anrufen", faellig: at(0, 19), liste: "Familie" },
+      { titel: "Steuerunterlagen sortieren", faellig: at(4, 9), liste: "Büro" },
+      { titel: "Neue Ideen sammeln", liste: "Ideen" },
+    ],
+    notizen: [
+      { titel: "Ideen Webseite", ordner: "Projekte", auszug: "Startseite ruhiger, mehr Weißraum, Kontaktformular nach oben", geaendert: at(-1, 20) },
+      { titel: "Einkaufsliste", ordner: "Privat", auszug: "Milch, Brot, Äpfel, Kaffee", geaendert: at(-3, 8) },
+      { titel: "Instagram-Plan Dezember", ordner: "Projekte", auszug: "Woche 1: Kurzbefehle, Woche 2: Schaltzentrale", geaendert: at(-4, 11) },
+    ],
+    mails: [
+      { betreff: "Ihre Rechnung für November", von: "Stadtwerke", datum: at(0, 10, 12), ungelesen: true },
+      { betreff: "Terminbestätigung", von: "Praxis am Markt", datum: at(0, 8, 40), ungelesen: true },
+      { betreff: "Angebot Druckerei", von: "Druckhaus Meier", datum: at(-2, 15), markiert: true },
+    ],
+  };
+  erledigt.clear(); $("setup").hidden = true; zeigeAlles();
+  toast("Beispieldaten. Aktualisieren holt deine echten Daten.");
+};
+
+// ---------- Start ----------
+if (!ausHash()) ausSpeicher();
+if (!daten) $("setup").hidden = false;
+zeigeAlles();
+window.addEventListener("hashchange", () => { if (ausHash()) zeigeAlles(); });
+setInterval(zeigeStand, 60000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) zeigeAlles(); });
+</script>
+</body>
+</html>

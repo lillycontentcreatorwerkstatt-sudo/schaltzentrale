@@ -1,0 +1,5 @@
+.claude/
+kurzbefehle/bau/
+__pycache__/
+.DS_Store
+kurzbefehle/bau-test/
