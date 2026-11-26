@@ -31,7 +31,7 @@ def skript(name):
 def javascript(b, quelltext, eingabe):
     u = b.uid()
     b.add("is.workflow.actions.runjavascriptforautomation",
-          {"UUID": u, "WFJavaScript": quelltext, "WFInput": attach(eingabe)})
+          {"UUID": u, "Script": quelltext, "Input": attach(eingabe)})
     return out(u, "Ergebnis")
 
 
@@ -96,6 +96,6 @@ b = Builder("5C4A0002")
 b.comment("Schaltzentrale: führt aus, was du in der Schaltzentrale anklickst (abhaken, anlegen, Notiz öffnen). "
           "Wird von der Schaltzentrale gestartet, nicht direkt.")
 ergebnis = javascript(b, skript("aktion.js"), SHORTCUT_INPUT)
-with b.If(ergebnis, 4, string="aktualisieren"):
+with b.If(as_text(ergebnis), 4, string="aktualisieren"):
     b.run_shortcut("Schaltzentrale aktualisieren")
 b.save(os.path.join(ZIEL, "Schaltzentrale Aktion"))
